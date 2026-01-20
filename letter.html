@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Love Letter — White & Strawberry Pink</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --pink: #ff6b9a; /* strawberry pink */
+      --pink-deep: #ff4d7e;
+      --paper: #fff9f9;
+      --shadow: rgba(17,17,17,0.12);
+      --radius: 18px;
+      --comfort: 'Segoe UI', Roboto, -apple-system, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:var(--comfort);background:linear-gradient(180deg,var(--bg),#fff);display:flex;align-items:center;justify-content:center;padding:24px}
+
+    .stage{width:920px;max-width:95%;min-height:560px;background:linear-gradient(180deg,#fff,#fff);border-radius:22px;padding:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,0.06);position:relative;overflow:hidden}
+
+    /* Envelope */
+    .envelope-wrap{width:560px;height:360px;position:relative;display:flex;align-items:center;justify-content:center;perspective:1200px}
+    .envelope{width:100%;height:70%;background:linear-gradient(180deg,var(--pink) 0%, var(--pink-deep) 100%);border-radius:12px;position:relative;box-shadow:0 12px 30px var(--shadow);cursor:pointer;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.9,.3,1)}
+
+    /* flap */
+    .envelope .flap{position:absolute;left:0;right:0;top:-50%;height:120%;background:linear-gradient(180deg,var(--paper),#fff);border-radius:12px;border:8px solid rgba(255,255,255,0.35);transform-origin:center bottom;transform:rotateX(0deg);transition:transform .7s cubic-bezier(.2,.9,.3,1), box-shadow .3s;transform-style:preserve-3d;-webkit-backface-visibility:visible;backface-visibility:visible}
+    .envelope .flap::before{content:'';position:absolute;left:0;right:0;bottom:-1px;height:56px;background:linear-gradient(180deg,rgba(0,0,0,0.02),transparent);border-bottom-left-radius:12px;border-bottom-right-radius:12px}
+
+    /* body decoration */
+    .envelope .body{position:absolute;left:12px;right:12px;top:12px;bottom:12px;background:linear-gradient(180deg,rgba(255,255,255,0.08),transparent);border-radius:10px;display:flex;align-items:center;justify-content:center}
+    .seal{position:absolute;right:20px;bottom:22px;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff4f6, #ffdfea);box-shadow:0 6px 20px rgba(255,77,126,0.16);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--pink-deep);z-index:6}
+
+    /* kiss SVG - hidden until open */
+    .kiss{position:absolute;right:32px;bottom:36px;width:56px;height:56px;transform-origin:center;opacity:0;z-index:7;pointer-events:none}
+    .kiss.animate{animation:kissPop .9s cubic-bezier(.2,.9,.3,1) forwards}
+    @keyframes kissPop{0%{transform:translateY(8px) scale(.6) rotate(-12deg);opacity:0}40%{transform:translateY(-6px) scale(1.15) rotate(-6deg);opacity:1}100%{transform:translateY(-10px) scale(1) rotate(-4deg);opacity:1}}
+
+    /* letter */
+    .letter{width:520px;height:320px;background:var(--paper);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.08);position:absolute;top:60%;transform:translateY(0) scale(.98);transition:transform .7s cubic-bezier(.2,.9,.3,1),opacity .4s;overflow:hidden;z-index:3;display:flex;flex-direction:column}
+    .letter-inner{padding:28px;height:100%;overflow:auto}
+    .letter h1{margin:0 0 10px;font-size:20px;color:var(--pink-deep)}
+    .letter p{margin:0 0 12px;line-height:1.55;color:#333}
+
+    /* initially hidden - use general sibling (~) so the kiss SVG doesn't break the selector */
+    .envelope.closed ~ .letter{opacity:0;pointer-events:none}
+
+    /* open state */
+    .envelope.open{transform:translateY(-10px)}
+    .envelope.open .flap{transform:rotateX(-160deg);box-shadow:0 4px 30px rgba(0,0,0,0.08)}
+    .envelope.open ~ .letter{opacity:1;pointer-events:auto;transform:translateY(-62%) scale(1)}
+
+    /* pop animation for letter */
+    .letter.pop{animation:pop .65s cubic-bezier(.2,.9,.3,1)}
+    @keyframes pop{0%{transform:translateY(0) scale(.98);opacity:0}60%{transform:translateY(-70%) scale(1.03);opacity:1}100%{transform:translateY(-62%) scale(1)}}
+
+    /* floating hearts */
+    .hearts{position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none;overflow:hidden;z-index:5}
+    .heart{position:absolute;width:18px;height:18px;transform:rotate(45deg);background:var(--pink-deep);border-radius:3px;opacity:0.95}
+    .heart::before,.heart::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--pink-deep)}
+    .heart::before{top:-9px;left:0}
+    .heart::after{left:9px;top:0}
+    .heart.animate{animation:floatUp var(--dur) linear forwards}
+    @keyframes floatUp{0%{transform:translateY(0) rotate(45deg);opacity:1}100%{transform:translateY(-320px) translateX(var(--x)) rotate(45deg);opacity:0}}
+
+    /* small details */
+    .hint{position:absolute;left:28px;bottom:18px;font-size:13px;color:#666}
+    .controls{position:absolute;right:24px;bottom:18px;display:flex;gap:8px}
+    .btn{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:10px 14px;border-radius:999px;font-size:13px;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--pink),var(--pink-deep));color:white;border:none}
+
+    /* paper edges */
+    .letter::before{content:'';position:absolute;left:8px;right:8px;top:8px;height:8px;background:linear-gradient(90deg,rgba(255,255,255,0.6),transparent);border-radius:8px}
+
+    /* nice scrollbar */
+    .letter-inner{scrollbar-width:thin}
+    .letter-inner::-webkit-scrollbar{width:10px}
+    .letter-inner::-webkit-scrollbar-track{background:transparent}
+    .letter-inner::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--pink),var(--pink-deep));border-radius:20px}
+
+    /* accessibility: reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .envelope,.envelope .flap,.letter{transition:none;animation:none}
+    }
+
+    /* responsive */
+    @media (max-width:640px){
+      .stage{padding:20px}
+      .envelope-wrap{width:92%;height:320px}
+      .letter{width:88%;height:280px}
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" role="main" aria-label="Animated love letter on white and strawberry pink background">
+    <div class="envelope-wrap">
+      <div class="envelope closed" id="env" tabindex="0" role="button" aria-pressed="false" aria-label="Envelope. Click or press Enter to open.">
+        <div class="flap"></div>
+        <div class="body">
+          <div style="width:80%;height:70%;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:18px;letter-spacing:1px">For you</div>
+          <div class="seal">❤</div>
+        </div>
+      </div>
+
+      <svg class="kiss" id="kissSVG" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M12 32c4-10 20-14 28-6 8 8 2 22-6 26-6 3-14 0-20-6-5-5-4-13-2-20z" fill="#ff7aa3"/>
+        <path d="M46 20c6 6 5 14-1 20s-20 6-26 0 2-16 8-20c6-4 13-4 19 0z" fill="#ff4d7e" opacity="0.9"/>
+      </svg>
+
+      <div class="letter" id="letter" aria-hidden="true">
+        <div class="letter-inner" id="letterInner">
+          <h1>My Dearest Kimchi,</h1>
+          <p>Okay — full confession: whenever you push your glasses up and give me that look, I forget how to form sentences. You in your glasses makes you look elegant, impossible to resist, and somehow both brilliant and mischievous at the same time.</p>
+          <p>I love the way you laugh at my dumb jokes, and how your hand finds mine like it always knew the path. You make ordinary moments feel deliciously electric — like a secret the world hasn’t discovered yet.</p>
+          <p>I want to be the one who makes you blush (on purpose), who surprises you with late-night snacks, and who knows when to be silly and when to pull you close. I promise to celebrate you loudly and hold you close quietly.</p>
+          <p>So this is your little permission slip: flirt back, steal my hoodie, demand kisses when you want them — I’ll say yes every time.</p>
+          <p style="margin-top:12px;font-weight:700;color:var(--pink-deep)">Yours, always a little smitten,</p>
+          <p style="margin:0 0 4px;font-style:italic;color:#555">— Auro</p>
+
+          <hr style="margin:18px 0;border:none;border-top:1px dashed rgba(0,0,0,0.06)">
+          <p style="font-size:13px;color:#888">PS: You in your glasses makes you look elegant — keep them on for me sometimes. Scroll whenever you need a cheeky reminder. Click the envelope again to close.</p>
+        </div>
+      </div>
+
+      <div class="hearts" id="hearts"></div>
+    </div>
+
+    <div class="hint">Click the envelope to open the letter</div>
+    <div class="controls">
+      <button class="btn primary" id="openBtn">Open</button>
+      <button class="btn" id="closeBtn">Close</button>
+      <button class="btn" id="recordBtn">Record</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const env = document.getElementById('env');
+      const letter = document.getElementById('letter');
+      const openBtn = document.getElementById('openBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const recordBtn = document.getElementById('recordBtn');
+      const letterInner = document.getElementById('letterInner');
+      const heartsLayer = document.getElementById('hearts');
+      const kiss = document.getElementById('kissSVG');
+
+      let heartInterval = null;
+
+      function spawnHeart(){
+        const h = document.createElement('div');
+        h.className = 'heart animate';
+        const startX = Math.random()*60 + 20; // percent
+        const size = Math.random()*18 + 12; // px
+        const dur = (Math.random()*2 + 3).toFixed(2) + 's';
+        const xDrift = (Math.random()*120 - 60) + 'px';
+        h.style.left = startX + '%';
+        h.style.width = size + 'px';
+        h.style.height = size + 'px';
+        h.style.setProperty('--dur', dur);
+        h.style.setProperty('--x', xDrift);
+        heartsLayer.appendChild(h);
+        setTimeout(()=> h.remove(), (parseFloat(dur)*1000)+200);
+      }
+
+      function startHearts(){
+        if(heartInterval) return;
+        heartInterval = setInterval(spawnHeart, 350);
+        spawnHeart(); spawnHeart(); spawnHeart();
+      }
+      function stopHearts(){
+        clearInterval(heartInterval); heartInterval = null;
+      }
+
+      function openEnvelope(){
+        env.classList.remove('closed');
+        env.classList.add('open');
+        letter.classList.add('pop');
+        letter.setAttribute('aria-hidden','false');
+        env.setAttribute('aria-pressed','true');
+
+        // restart kiss animation
+        kiss.classList.remove('animate');
+        void kiss.offsetWidth;
+        kiss.classList.add('animate');
+
+        startHearts();
+        setTimeout(()=> letter.classList.remove('pop'),800);
+        setTimeout(()=> letterInner.focus && letterInner.focus(),700);
+      }
+      function closeEnvelope(){
+        env.classList.remove('open');
+        env.classList.add('closed');
+        letter.setAttribute('aria-hidden','true');
+        env.setAttribute('aria-pressed','false');
+        stopHearts();
+      }
+
+      env.addEventListener('click', ()=> {
+        if(env.classList.contains('open')) closeEnvelope(); else openEnvelope();
+      });
+      env.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); env.click(); } });
+      openBtn.addEventListener('click', openEnvelope);
+      closeBtn.addEventListener('click', closeEnvelope);
+
+      // accessibility: make letterInner focusable
+      letterInner.setAttribute('tabindex','0');
+
+      // -------- Recording: sandbox-safe fallback --------
+      // Some environments (iframes / strict permissions policy) BLOCK display-capture entirely.
+      // In that case, we disable the Record button to avoid runtime errors.
+      function displayCaptureIsAllowed(){
+        try{
+          return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+        }catch(_){
+          return false;
+        }
+      }
+
+      if(!displayCaptureIsAllowed()){
+        recordBtn.disabled = true;
+        recordBtn.title = 'Recording is disabled in this environment.';
+        recordBtn.style.opacity = 0.5;
+      } else {
+        // Even if API exists, the permissions-policy might block it at runtime.
+        recordBtn.addEventListener('click', async ()=>{
+          alert('Screen recording is blocked by this platform\'s permissions policy. Please use your OS screen recorder.');
+        });
+      }
+
+    })();
+  </script>
+</body>
+</html>
